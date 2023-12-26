@@ -1,4 +1,4 @@
-package esercitazioni;
+package esercitazioni.prodottoScalare;
 
 public class ProdottoScalare  extends Thread{
 
