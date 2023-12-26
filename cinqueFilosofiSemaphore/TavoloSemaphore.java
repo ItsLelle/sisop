@@ -9,7 +9,7 @@ public class TavoloSemaphore extends Tavolo{
 
     public TavoloSemaphore(int numFilosofi){
         super();
-        for(int i = 0; i <numFilosofi; i++ ){
+        for(int i = 0; i <numFilosofi; i++ ){//scorro i filosofi e mi vado a creare per ogni singola bacchetta un semaforo con un permesso
             bacchetta[i] = new Semaphore(1);
         }
     }
@@ -24,21 +24,21 @@ public class TavoloSemaphore extends Tavolo{
 
     @Override
     public void rilasciaBacchetta(int i) throws InterruptedException {
-        bacchetta[i].release();
+        bacchetta[i].release();//rilascio le bacchette dx e sx
         bacchetta[(i+1)%numFilosofi].release();
     }
 
     public static void main(String[] args) {
         int numFilosofi = 5;
         TavoloSemaphore t = new TavoloSemaphore(numFilosofi);
-        Filosofi[]filosofi = new Filosofi[numFilosofi];
-        for(int i = 0; i < numFilosofi; i++){
-            filosofi[i] = new Filosofi(t, i);
-            filosofi[i].start();
+        Filosofi[]filosofi = new Filosofi[numFilosofi];//mi creo un array di filosofi
+        for(int i = 0; i < numFilosofi; i++){//scorro i filosofi
+            filosofi[i] = new Filosofi(t, i);//mi creo il filosofo grazie al tavolo e alla posizione
+            filosofi[i].start();//parte il thread
         }
-        for(Thread f: filosofi){
+        for(Thread f: filosofi){//per ogni filosofo thread
             try{
-                f.join();
+                f.join();//joina così che ogni filosofo debba finire prima di poter far iniziare un altro a mangiare
             }catch(InterruptedException e){
                 e.printStackTrace();
             }
