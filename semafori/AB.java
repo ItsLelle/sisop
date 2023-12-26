@@ -25,7 +25,7 @@ public class AB {
         public void run() {
             try{
                 semB.acquire();
-                System.out.print("B");
+                System.out.print("B ");
                 semA.release();
             }catch(InterruptedException e){
                 e.printStackTrace();
