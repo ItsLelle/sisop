@@ -17,15 +17,16 @@ public class TavoloSemaphore extends Tavolo{
     @Override
     public void prendiBacchetta(int i) throws InterruptedException {
         mutex.acquire();//il mutex mi aiuta a gestire l'acquisizione della bacchetta
-        bacchetta[i].acquire();//dx
         bacchetta[(i+1)%numFilosofi].acquire();//sx
+        bacchetta[i].acquire();//dx
         mutex.release();//qui rilascio
     }
 
     @Override
     public void rilasciaBacchetta(int i) throws InterruptedException {
-        bacchetta[i].release();//rilascio le bacchette dx e sx
         bacchetta[(i+1)%numFilosofi].release();
+        bacchetta[i].release();//rilascio le bacchette dx e sx
+        
     }
 
     public static void main(String[] args) {
