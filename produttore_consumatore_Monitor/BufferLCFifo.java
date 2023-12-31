@@ -14,16 +14,16 @@ public class BufferLCFifo extends BufferLC {
 	public void put(Elemento el) throws InterruptedException {
 		l.lock();
 		try {
-			codaProduttori.add(Thread.currentThread());
-			while (!possoInserire()) {
+			codaProduttori.add(Thread.currentThread());//aggiungo il thread corrente alla coda
+			while (!possoInserire()) {//se non posso inserire mi fermo in attesa
 				bufferPieno.await();
 			}
-			codaProduttori.remove();
+			codaProduttori.remove();//altrimenti rimuovo, mi calcolo in e incremento il numero di elementi
 			buffer[in] = el;
 			in = (in + 1) % buffer.length;
 			numElementi++;
 			System.out.println(this);
-			bufferVuoto.signalAll();
+			bufferVuoto.signalAll();//li libera tutti
 		} finally {
 			l.unlock();
 		}
