@@ -25,7 +25,7 @@ public class TavoloSemaphore extends Tavolo{
     @Override
     public void rilasciaBacchetta(int i) throws InterruptedException {
         bacchetta[(i+1)%numFilosofi].release();
-        bacchetta[i].release();//rilascio le bacchette dx e sx
+        bacchetta[i].release();//rilascio le bacchette sx e dx
         
     }
 
