@@ -35,8 +35,25 @@ public class FuniviaSem extends Funivia{
 
     @Override
     public void pilotaEnd() throws InterruptedException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'pilotaEnd'");
+        permettiStampa.acquire();
+		System.out.println("Viaggio numero: " + (viaggio + 1));
+		System.out.print("ID turisti presenti: ");
+
+		for (int i = 0; i < idTuristi.size(); i++) {
+			System.out.print(idTuristi.get(i) + " ");
+		}
+
+		System.out.println("\n");
+
+		if (viaggio % 2 == 0) {
+			uscitaPiedi.release(turistaPiedi);
+		} else {
+			uscitaBici.release(turistaBici);
+		}
+
+		fermo.acquire();
+		idTuristi.clear();
+
     }
 
     @Override
