@@ -7,94 +7,130 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.LinkedList;
 
 public class TreninoLC extends Trenino{
-    private int numPostiCabina = 10;
-    private int numPostiOccupati = 0;
-    private int tempoScattoAvanti = 30;
+    private int[] turistiNellaCabina=new int[10];
+    private int cabinaAttuale = 0;
 
-    private boolean permessoEntrataIm = false;
-    private boolean permessoUscitaIm = false;
+    private boolean scatto = false;
+  
 
     private Lock l = new ReentrantLock();
-    private Condition permettiScattoCabina = l.newCondition();
-    private Condition permettiSalitaTurista = l.newCondition();
-    private Condition permettiDiscesaTurista = l.newCondition();
+    private Condition cabinaVuota = l.newCondition();
+    private Condition cabinaPiena = l.newCondition();
+    private Condition possoScendere = l.newCondition();
+    private Condition possoSalire = l.newCondition();
 
 
-    private Condition permettiSalitaImp = l.newCondition();
-    private Condition permettiDiscesaImp = l.newCondition();
-    private Condition permettiPartenzaImp = l.newCondition();
+    private Condition cambioCabina = l.newCondition();
+    private int turistiChePossonoSalire=0;
+    private int turistiChePossonoScendere=0;
 
-    private LinkedList<Integer> cabine = new LinkedList<>();
+    private LinkedList<Long> cabina = new LinkedList<>();
+
+    public TreninoLC(){
+        for(int i = 0; i< turistiNellaCabina.length; i++){
+            turistiNellaCabina[i] = 0;
+
+        }
+    }
 
     @Override
     void tourSali() throws InterruptedException {
         l.lock();
         try{
-            for(int c: cabine){
-                while(!PossoSalire()){
-                    permettiSalitaTurista.await();
-                }
-                numPostiOccupati++;
+            while (turistiChePossonoSalire == 0) {//modello il fatto che l'impiegato dà il permesso di salire
+                possoSalire.await(); 
             }
-            if(numPostiOccupati == numPostiCabina){
-                permessoEntrataIm = false;
-                permettiPartenzaImp.signal();
+            turistiChePossonoSalire--;
+            while (turistiNellaCabina[cabinaAttuale] == 10) {
+                cabinaVuota.await();  
             }
-
+            turistiNellaCabina[cabinaAttuale]++;
+            System.out.println("turista "+Thread.currentThread().getId()+"è salito");
+            cabina.addLast(Thread.currentThread().getId());
+            if(turistiNellaCabina[cabinaAttuale] == 10){
+                scatto = true;
+                cabinaPiena.signal();
+            }
         }finally{
             l.unlock();
         }
-    }
-
-    private boolean PossoSalire() {
-        return numPostiOccupati == numPostiCabina;
     }
 
     @Override
     void tourScendi() throws InterruptedException {
          l.lock();
         try{
-            for(int c: cabine){
-                while(!PossoScendere()){
-                    permettiDiscesaTurista.await();
-                }
-                numPostiOccupati--;
-            }
-            if(numPostiOccupati == 0){
-                permessoUscitaIm = false;
-                
-            }
+           while (turistiChePossonoScendere == 0) {
+                possoScendere.await();
+           }
+           turistiChePossonoScendere--;
+           while (turistiNellaCabina[cabinaAttuale] == 0 || Thread.currentThread().getId() != cabina.getLast()) {
+            possoScendere.await();
+           }
+           turistiNellaCabina[cabinaAttuale]--;
+           System.out.println("turista "+Thread.currentThread().getId()+ "è sceso");
+           if(turistiNellaCabina[cabinaAttuale]==0){
+            cabinaVuota.signalAll();
+           }
 
         }finally{
             l.unlock();
         }
     }
 
-    private boolean PossoScendere() {
-        return permessoUscitaIm;
-    }
-
     @Override
     void impFaiScendere() throws InterruptedException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'impFaiScendere'");
+        l.lock();
+        try{
+            if(turistiNellaCabina[cabinaAttuale] == 0){
+                //non fa nulla
+            }else{
+                possoScendere.signalAll();
+            }
+
+
+        }finally{
+            l.unlock();
+        }
     }
 
     @Override
     void impFaiSalire() throws InterruptedException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'impFaiSalire'");
+        l.lock();
+        try{
+            turistiChePossonoSalire = 10;
+            possoSalire.signalAll();
+            
+        }finally{
+            l.unlock();
+        }
     }
 
     @Override
     void impMuovi() throws InterruptedException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'impMuovi'");
+        l.lock();
+        try{
+            while ((!scatto)) {
+                cabinaPiena.await();
+            }
+            impMuovi();
+            scatto = false;
+            cabinaAttuale = (cabinaAttuale+1)%10;
+            turistiChePossonoScendere = 10;
+            cambioCabina.signalAll();
+        }finally{
+            l.unlock();
+        }
     }
 
-    public void setPostiOccupati(int posti){
-        numPostiOccupati = posti;
-
+    public static void main(String[] args) {
+        Trenino trenino = new TreninoLC();
+        Thread impiegato = new Impiegato(trenino);
+        impiegato.setDaemon(true);
+        impiegato.start();
+        for(int i = 0; i < 120; i++){
+            new Turista(trenino).start();;
+        }
     }
     
 }
