@@ -42,12 +42,12 @@ public class CaselloSem extends CaselloAutostradale {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        int N = 5;
-        int T = 10;
-        int V = 10;
+        int nPorte = 5;
+        int tariffa = 10;
+        int numVeicoli = 10;
 
-        CaselloAutostradale casello = new CaselloSem(N, T);
-        casello.test(V);
+        CaselloAutostradale casello = new CaselloSem(nPorte, tariffa);
+        casello.test(numVeicoli);
        
     }
 }

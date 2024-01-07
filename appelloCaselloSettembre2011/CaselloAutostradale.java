@@ -4,7 +4,7 @@ package appelloCaselloSettembre2011;
 public abstract class CaselloAutostradale {
     protected int nPorte = 100;
     protected int tariffa = 1;
-    protected int incasso = 0;
+    protected int incasso;
 
     
 
@@ -12,10 +12,11 @@ public abstract class CaselloAutostradale {
     public CaselloAutostradale(int nPorte, int tariffa){
         this.nPorte = nPorte;
         this.tariffa = tariffa;
+        this.incasso = 0;
     }
 
     protected abstract void accedi(int p)throws InterruptedException;
-    protected abstract void paga(int p, int tariffa)throws InterruptedException;
+    protected abstract void paga(int p, int km)throws InterruptedException;
 
     public void test(int numVeicoli)throws InterruptedException{
         Veicolo[] veicoli = new Veicolo[numVeicoli];
