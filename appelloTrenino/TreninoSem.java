@@ -3,7 +3,7 @@ package appelloTrenino;
 import java.util.concurrent.Semaphore;
 
 public class TreninoSem extends Trenino {
-    private int cabinaAttuale = 10;
+    private int cabinaAttuale = 0;
     private int[] turistiNellaCabina=new int[10];
 
     private Semaphore[] cabina = new Semaphore[10];
@@ -69,13 +69,12 @@ public class TreninoSem extends Trenino {
     }
 
     public static void main(String[] args) {
-        Trenino trenino=new TreninoSem();
-		Thread impiegato=new Impiegato(trenino);
-		impiegato.setDaemon(true);
-		impiegato.start();
-		for(int i=0;i<120;i++)
-		{
-			new Turista(trenino).start();
-		}
-	}
+      Trenino trenino=new TreninoSem();
+		  Thread impiegato=new Impiegato(trenino);
+		  impiegato.setDaemon(true);
+		  impiegato.start();
+		  for(int i=0;i<120;i++){
+			  new Turista(trenino).start();
+		  }
+	  }
 }

@@ -2,49 +2,52 @@ package appelloCaselloSettembre2011;
 
 import java.util.concurrent.Semaphore;
 
+
 public class CaselloSem extends CaselloAutostradale {
-    private float incasso = 0;
-    private Semaphore[] fila = new Semaphore[n];
+
+    private Semaphore[] porta = new Semaphore[nPorte];
     private Semaphore mutex = new Semaphore(1);
-    private int[]numVeicoliFila = new int[n];
-
-
-    public CaselloSem(){
-        super();
-        for(int i = 0; i < n; i++){
-            fila[i] = new Semaphore(numVeicoliFila[i], true);//fifo
-            numVeicoliFila[i] = 0;
+   
+    public CaselloSem(int nPorte, int tariffa){
+        super(nPorte,tariffa);
+        for(int i = 0; i < nPorte; i++){
+            porta[i] = new Semaphore(1, true);//fifo
         }
         System.out.println(this);
     }
 
+
     @Override
-    protected void percorri(int km) throws InterruptedException {
-        throw new UnsupportedOperationException("Unimplemented method 'percorri'");
+    protected void accedi(int p) throws InterruptedException {
+        porta[p].acquire();
+        System.out.format("il veicolo %d ha avuto accesso alla porta %d ", Thread.currentThread().getId(), p);
+        System.out.println(this);
     }
 
     @Override
-    protected int scegli() throws InterruptedException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'scegli'");
+    protected void paga(int p, int km) throws InterruptedException {
+       mutex.acquire();
+       incasso += km * tariffa;
+       System.out.println("Il veicolo "+Thread.currentThread().getId()+" ha appena pagato ");
+       System.out.println(this);
+       porta[p].release();
+       mutex.release();
     }
 
-    @Override
-    protected void accedi(int porta) throws InterruptedException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accedi'");
-    }
+
 
     @Override
-    protected void paga(int km, float tariffa) throws InterruptedException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'paga'");
+    public String toString() {
+        return new String("Incasso del casello: "+incasso);
     }
 
-    @Override
-    protected void rilascia(int porta) throws InterruptedException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'rilascia'");
+    public static void main(String[] args) throws InterruptedException {
+        int N = 5;
+        int T = 10;
+        int V = 10;
+
+        CaselloAutostradale casello = new CaselloSem(N, T);
+        casello.test(V);
+       
     }
-    
 }
