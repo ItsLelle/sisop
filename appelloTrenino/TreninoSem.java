@@ -3,90 +3,79 @@ package appelloTrenino;
 import java.util.concurrent.Semaphore;
 
 public class TreninoSem extends Trenino {
-    private int numPostiCabina = 10;
-    private int numPostiOccupati = 0;
-    private int tempoScattoAvanti = 30;
+    private int cabinaAttuale = 10;
+    private int[] turistiNellaCabina=new int[10];
 
-    private Semaphore[] cabine = new Semaphore[10];
+    private Semaphore[] cabina = new Semaphore[10];
     private Semaphore mutex = new Semaphore(1);
     private Semaphore permettiScattoCabina = new Semaphore(0);
 
-    private Semaphore permettiSalitaTurista = new Semaphore(0);
     private Semaphore permettiDiscesaTurista = new Semaphore(0);
-
-    private Semaphore permettiSalitaImp = new Semaphore(0);
     private Semaphore permettiDiscesaImp = new Semaphore(0);
-    private Semaphore permettiPartenzaImp = new Semaphore(0);
+   
+    private Semaphore filaCabina=new Semaphore(10);
+
+    public TreninoSem(){
+        for(int i =0; i < numPostiCabina; i++){
+            cabina[i] = new Semaphore(0);
+            turistiNellaCabina[i] = 0;
+
+        }
+    }
 
     @Override
     void tourSali() throws InterruptedException {
-        for(int i = 0; i < cabine.length; i++){
-            if(numPostiOccupati == 0){
-                permettiSalitaTurista.acquire();
-                mutex.acquire();
-                numPostiOccupati++;
-                if(numPostiOccupati == numPostiCabina){
-                    permettiPartenzaImp.release();
-                }
-                mutex.release();
-            }
-        }      
+        filaCabina.acquire(1);
+        cabina[cabinaAttuale].acquire(1);
+        mutex.acquire();
+        System.out.println("Turista "+Thread.currentThread().getId()+ "è salito");
+        turistiNellaCabina[cabinaAttuale]++;
+        if(turistiNellaCabina[cabinaAttuale] == 10){
+            permettiScattoCabina.release(1);
+        }
+        mutex.release();        
     }
 
     @Override
     void tourScendi() throws InterruptedException {
-       for(int i = 0; i < cabine.length; i++){
-        if(numPostiOccupati == numPostiCabina){
-            permettiDiscesaTurista.acquire();
-            mutex.acquire();
-            numPostiOccupati--;
-            if (numPostiOccupati == 0){
-                permettiDiscesaImp.release();
-            }
-            mutex.release();
-        }
-       }
+       permettiDiscesaTurista.acquire(1);
+       System.out.println("Il turista "+Thread.currentThread().getId()+"è sceso");
     }
 
     @Override
     void impFaiScendere() throws InterruptedException {
-       for(int i = 0; i < cabine.length; i++){
-        if(numPostiOccupati > 0){
-            permettiDiscesaImp.acquire();
-            mutex.acquire();
-            numPostiOccupati--;
-            if(numPostiOccupati == 0){
-                permettiPartenzaImp.release();
-            }
-            mutex.release();
-        }
-       }
+      mutex.acquire();
+      if(turistiNellaCabina[cabinaAttuale] == 0){
+        //non fa nulla
+      }else{
+        permettiDiscesaImp.release(10);
+      }
+      mutex.release();
     }
 
     @Override
     void impFaiSalire() throws InterruptedException {
-       for(int i = 0; i < cabine.length; i++){
-        if(numPostiOccupati == 0){
-            permettiSalitaImp.acquire();
-            mutex.acquire();
-            numPostiOccupati++;
-            if (numPostiCabina == numPostiOccupati){
-                permettiSalitaImp.release();
-            }
-            mutex.release();
-        }
-      }
+      cabina[cabinaAttuale].release(10);
     }
 
     @Override
     void impMuovi() throws InterruptedException {
-        for(int i = 0; i < cabine.length; i++){
-            permettiScattoCabina.release(tempoScattoAvanti);
-        }
+        permettiScattoCabina.acquire(1);
+        mutex.acquire();
+        impMuovi();
+        cabinaAttuale = (cabinaAttuale+1)%10;
+        mutex.release();
+        filaCabina.release(10);
     }
 
     public static void main(String[] args) {
-        Trenino trenino = new TreninoSem();
-        trenino.test(10, 10);
-    }
+        Trenino trenino=new TreninoSem();
+		Thread impiegato=new Impiegato(trenino);
+		impiegato.setDaemon(true);
+		impiegato.start();
+		for(int i=0;i<120;i++)
+		{
+			new Turista(trenino).start();
+		}
+	}
 }

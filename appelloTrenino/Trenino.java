@@ -22,7 +22,7 @@ public abstract class Trenino {
             new Thread(new Turista(this)).start();
         }
 
-        Thread t = new Thread(new Impiegato(this, tempoGiroCompleto, tempoScattoAvanti));
+        Thread t = new Thread(new Impiegato(this));
         t.setDaemon(true);
         t.start();
     }
