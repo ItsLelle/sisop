@@ -27,7 +27,7 @@ public class CaselloSem extends CaselloAutostradale {
     @Override
     protected void paga(int p, int km) throws InterruptedException {
        mutex.acquire();
-       incasso += km * tariffa;
+       incasso += ( km * tariffa);
        System.out.println("Il veicolo "+Thread.currentThread().getId()+" ha appena pagato ");
        System.out.println(this);
        porta[p].release();

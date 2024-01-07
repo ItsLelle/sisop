@@ -4,7 +4,7 @@ package appelloCaselloSettembre2011;
 public abstract class CaselloAutostradale {
     protected int nPorte = 100;
     protected int tariffa = 1;
-    protected int incasso;
+    protected int incasso = 0;
 
     
 
@@ -12,7 +12,6 @@ public abstract class CaselloAutostradale {
     public CaselloAutostradale(int nPorte, int tariffa){
         this.nPorte = nPorte;
         this.tariffa = tariffa;
-        this.incasso = 0;
     }
 
     protected abstract void accedi(int p)throws InterruptedException;
